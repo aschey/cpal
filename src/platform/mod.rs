@@ -446,7 +446,10 @@ macro_rules! impl_platform_host {
 }
 
 // TODO: Add pulseaudio and jack here eventually.
-#[cfg(any(target_os = "linux", target_os = "dragonfly", target_os = "freebsd"))]
+#[cfg(all(
+    any(target_os = "linux", target_os = "dragonfly", target_os = "freebsd"),
+    not(feature = "dummy")
+))]
 mod platform_impl {
     pub use crate::host::alsa::{
         Device as AlsaDevice, Devices as AlsaDevices, Host as AlsaHost, Stream as AlsaStream,
@@ -474,7 +477,7 @@ mod platform_impl {
     }
 }
 
-#[cfg(any(target_os = "macos", target_os = "ios"))]
+#[cfg(all(any(target_os = "macos", target_os = "ios"), not(feature = "dummy")))]
 mod platform_impl {
     pub use crate::host::coreaudio::{
         Device as CoreAudioDevice, Devices as CoreAudioDevices, Host as CoreAudioHost,
@@ -492,7 +495,7 @@ mod platform_impl {
     }
 }
 
-#[cfg(target_os = "emscripten")]
+#[cfg(all(target_os = "emscripten", not(feature = "dummy")))]
 mod platform_impl {
     pub use crate::host::emscripten::{
         Device as EmscriptenDevice, Devices as EmscriptenDevices, Host as EmscriptenHost,
@@ -510,7 +513,11 @@ mod platform_impl {
     }
 }
 
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+#[cfg(all(
+    target_arch = "wasm32",
+    feature = "wasm-bindgen",
+    not(feature = "dummy")
+))]
 mod platform_impl {
     pub use crate::host::webaudio::{
         Device as WebAudioDevice, Devices as WebAudioDevices, Host as WebAudioHost,
@@ -528,7 +535,7 @@ mod platform_impl {
     }
 }
 
-#[cfg(windows)]
+#[cfg(all(windows, not(feature = "dummy")))]
 mod platform_impl {
     #[cfg(feature = "asio")]
     pub use crate::host::asio::{
@@ -556,7 +563,7 @@ mod platform_impl {
     }
 }
 
-#[cfg(target_os = "android")]
+#[cfg(all(target_os = "android", not(feature = "dummy")))]
 mod platform_impl {
     pub use crate::host::oboe::{
         Device as OboeDevice, Devices as OboeDevices, Host as OboeHost, Stream as OboeStream,
@@ -584,6 +591,7 @@ mod platform_impl {
     target_os = "emscripten",
     target_os = "android",
     all(target_arch = "wasm32", feature = "wasm-bindgen"),
+    feature = "dummy"
 )))]
 mod platform_impl {
     pub use crate::host::null::{
@@ -597,6 +605,22 @@ mod platform_impl {
     /// The default host for the current compilation target platform.
     pub fn default_host() -> Host {
         NullHost::new()
+            .expect("the default host should always be available")
+            .into()
+    }
+}
+#[cfg(feature = "dummy")]
+mod platform_impl {
+    pub use crate::host::dummy::{
+        Device as DummyDevice, Devices as DummyDevices, Host as DummyHost,
+        SupportedInputConfigs as DummySupportedInputConfigs,
+        SupportedOutputConfigs as DummySupportedOutputConfigs,
+    };
+
+    impl_platform_host!(Dummy dummy "Dummy");
+
+    pub fn default_host() -> Host {
+        DummyHost::new()
             .expect("the default host should always be available")
             .into()
     }

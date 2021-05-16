@@ -4,6 +4,8 @@ pub(crate) mod alsa;
 pub(crate) mod asio;
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 pub(crate) mod coreaudio;
+#[cfg(feature = "dummy")]
+pub(crate) mod dummy;
 #[cfg(target_os = "emscripten")]
 pub(crate) mod emscripten;
 #[cfg(all(
