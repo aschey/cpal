@@ -10,6 +10,7 @@ keywords = ["audio", "sound"]
 
 [features]
 asio = ["asio-sys", "num-traits"] # Only available on Windows. See README for setup instructions.
+dummy = []
 
 [dependencies]
 thiserror = "1.0.2"
